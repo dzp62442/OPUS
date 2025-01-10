@@ -18,6 +18,7 @@
 
 ## News
 
+- [2025/01/10]: We release the visualization code.
 - [2024/09/26]: OPUS is accepeted by NeurIPS 2024 :rocket: :rocket: :rocket: .
 - [2024/09/17]: We release an initial version of OPUS. It achieves promising performance of 41.2 RayIoU and 36.2 mIoU on the NuScene-Occ3D dataset.
 
@@ -160,6 +161,18 @@ Multi-GPU evaluation:
 ```
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 torchrun --nproc_per_node 8 val.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints
+```
+
+### Visualization
+
+Visualizing results
+```
+python visualize.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints
+```
+
+Visualizing inputs and ground-truths
+```
+python visualize.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints --vis-input --vis-gt
 ```
 
 ## Bibtex
