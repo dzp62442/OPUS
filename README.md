@@ -51,8 +51,10 @@ Finally, compared with current state-of-the-art methods, our lightest model achi
 
 ### Environment
 
+> 直接使用 SparseOcc 的环境（PyTorch 2.0 + CUDA 11.8）即可进行训练与推理
+
 We build OPUS based on Pytorch 1.13.1 + CUDA 11.6
-```
+```bash
 conda create -n opus python=3.8
 conda activate opus
 conda install pytorch==1.13.1 torchvision==0.14.1 pytorch-cuda=11.6 -c pytorch -c nvidia
@@ -60,32 +62,37 @@ conda install pytorch==1.13.1 torchvision==0.14.1 pytorch-cuda=11.6 -c pytorch -
 
 Install other dependencies:
 
-```
+```bash
 pip install openmim
 mim install mmcv-full==1.6.0
 mim install mmdet==2.28.2
 mim install mmsegmentation==0.30.0
 mim install mmdet3d==1.0.0rc6
+pip install fvcore einops
 ```
 
 Install turbojpeg and pillow-simd to speed up data loading (optional but important):
 
-```
+```bash
 sudo apt-get update
 sudo apt-get install -y libturbojpeg
 pip install pyturbojpeg
 pip uninstall pillow
 pip install pillow-simd==9.0.0.post1
+pip install fvcore  # 再运行一遍，把 pillow 装回去
 ```
 
 Compile CUDA extensions:
 
-```
+```bash
 cd models/csrc
 python setup.py build_ext --inplace
 ```
 
 ### Prepare Dataset
+
+> 不能直接使用 SparseOcc 提供的 pkl 文件，需要手动生成
+> 第 3 步耗时较长，需要若干小时
 
 1. Download nuScenes from [https://www.nuscenes.org/nuscenes](https://www.nuscenes.org/nuscenes) and place it in folder `data/nuscenes`.
 
@@ -93,13 +100,13 @@ python setup.py build_ext --inplace
 
 3. Prepare data with scripts provided by mmdet3d:
 
-```
+```bash
 mim run mmdet3d create_data nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
 4. Perform data preparation for OPUS:
 
-```
+```bash
 python gen_sweep_info.py
 ```
 
@@ -135,14 +142,14 @@ pretrain
 
 Train OPUS with a single GPU:
 
-```
-python train.py --config configs/opus-t_r50_704x256_8f_12e.py
+```bash
+python train.py --config configs/opus-t_r50_704x256_8f_24e.py
 ```
 
 Train OPUS with 8 GPUs:
 
-```
-bash dist_train.sh 8 configs/opus-t_r50_704x256_8f_12e.py
+```bash
+bash dist_train.sh 8 configs/opus-t_r50_704x256_8f_24e.py
 ```
 
 Note: The batch size for each GPU will be scaled automatically. So there is no need to modify the `batch_size` in configurations.
@@ -151,28 +158,28 @@ Note: The batch size for each GPU will be scaled automatically. So there is no n
 
 Single-GPU evaluation:
 
-```
+```bash
 export CUDA_VISIBLE_DEVICES=0
-python val.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints
+python val.py --config configs/opus-t_r50_704x256_8f_100e.py --weights checkpoints/opus-t_r50_nusc-occ3d_100e.pth
 ```
 
 Multi-GPU evaluation:
 
-```
+```bash
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-torchrun --nproc_per_node 8 val.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints
+torchrun --nproc_per_node 8 val.py --config configs/opus-t_r50_704x256_8f_100e.py --weights checkpoints/opus-t_r50_nusc-occ3d_100e.pth
 ```
 
 ### Visualization
 
 Visualizing results
-```
-python visualize.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints
+```bash
+python visualize.py --config configs/opus-t_r50_704x256_8f_100e.py --weights checkpoints/opus-t_r50_nusc-occ3d_100e.pth
 ```
 
 Visualizing inputs and ground-truths
-```
-python visualize.py --config configs/opus-t_r50_704x256_8f_12e.py --weights path/to/checkpoints --vis-input --vis-gt
+```bash
+python visualize.py --config configs/opus-t_r50_704x256_8f_100e.py --weights checkpoints/opus-t_r50_nusc-occ3d_100e.pth --vis-input --vis-gt
 ```
 
 ## Bibtex
